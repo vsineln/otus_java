@@ -7,8 +7,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>otus</groupId>
-    <artifactId>otus_java</artifactId>
+    <groupId>ru.otus</groupId>
+    <artifactId>otus-java</artifactId>
     <version>2019-09-SNAPSHOT</version>
 
     <packaging>pom</packaging>

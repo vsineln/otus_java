@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>otus</groupId>
-        <artifactId>otus_java</artifactId>
+        <groupId>ru.otus</groupId>
+        <artifactId>otus-java</artifactId>
         <version>2019-09-SNAPSHOT</version>
     </parent>
 
@@ -34,7 +34,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>otus.HelloOtus</mainClass>
+                            <mainClass>ru.otus.homework.HelloOtus</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
