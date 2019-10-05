@@ -15,6 +15,7 @@
 
     <modules>
         <module>hw01-maven</module>
+        <module>hw02-arrayList</module>
     </modules>
 
     <properties>
