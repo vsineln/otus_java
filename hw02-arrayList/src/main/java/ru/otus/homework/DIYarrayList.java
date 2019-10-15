@@ -2,7 +2,6 @@ package ru.otus.homework;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -40,7 +39,7 @@ public class DIYarrayList<T> implements List<T> {
 
     @Override
     public Iterator<T> iterator() {
-        throw new UnsupportedOperationException();
+        return new DIYIterator(0);
     }
 
     @Override
@@ -73,23 +72,6 @@ public class DIYarrayList<T> implements List<T> {
         data[size] = t;
         size += 1;
         return true;
-    }
-
-    private void increaseArray(int size) {
-        if (size < 0) {
-            throw new OutOfMemoryError();
-        }
-        int newCapacity = size + (size >> 1);
-        if (newCapacity < 0) {
-            newCapacity = Integer.MAX_VALUE;
-        }
-        data = copyArray(newCapacity);
-    }
-
-    private Object[] copyArray(int newSize) {
-        Object[] copy = new Object[newSize];
-        System.arraycopy(data, 0, copy, 0, data.length);
-        return copy;
     }
 
     @Override
@@ -141,12 +123,6 @@ public class DIYarrayList<T> implements List<T> {
         return (T) previous;
     }
 
-    private void checkIndex(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException();
-        }
-    }
-
     @Override
     public void add(int index, T element) {
         throw new UnsupportedOperationException();
@@ -180,6 +156,15 @@ public class DIYarrayList<T> implements List<T> {
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+        List<Object> list = Arrays.asList(data);
+        return list.stream()
+                .filter(n -> n != null)
+                .map(n -> String.valueOf(n))
+                .collect(Collectors.joining(",", "[", "]"));
     }
 
     private class DIYIterator implements ListIterator<T> {
@@ -244,12 +229,28 @@ public class DIYarrayList<T> implements List<T> {
         }
     }
 
-    @Override
-    public String toString() {
-        List<Object> list = Arrays.asList(data);
-        return list.stream()
-                .filter(n -> n != null)
-                .map(n -> String.valueOf(n))
-                .collect(Collectors.joining(",", "[", "]"));
+
+    private void increaseArray(int size) {
+        if (size < 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        int newCapacity = size + (size >> 1);
+        if (newCapacity < 0) {
+            newCapacity = Integer.MAX_VALUE;
+        }
+        data = copyArray(newCapacity);
+    }
+
+    private Object[] copyArray(int newSize) {
+        Object[] copy = new Object[newSize];
+        System.arraycopy(data, 0, copy, 0, data.length);
+        return copy;
+    }
+
+
+    private void checkIndex(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException();
+        }
     }
 }
