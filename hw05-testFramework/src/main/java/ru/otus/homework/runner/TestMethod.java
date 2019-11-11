@@ -1,4 +1,4 @@
-package ru.otus.homework.demo;
+package ru.otus.homework.runner;
 
 import java.lang.reflect.Method;
 

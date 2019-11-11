@@ -4,12 +4,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import ru.otus.homework.annotations.After;
 import ru.otus.homework.annotations.Before;
 import ru.otus.homework.annotations.Test;
-import ru.otus.homework.demo.TestMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,103 +16,120 @@ import java.util.List;
  * which has methods marked with @Test, @After, @Before
  */
 public class TestRunner {
-    private static List<Method> afterMethods = new ArrayList<>();
-    private static List<Method> beforeMethods = new ArrayList<>();
-    private static List<TestMethod> testMethods = new ArrayList<>();
-    private static int passed = 0;
-    private static int failed = 0;
 
     public static void run(String className) {
-        try {
-            Arrays.stream(getTestMethods(className)).forEach(m -> splitMethod(m));
-            executeTestMethods(className);
-        } catch (TestExecutionException e) {
-            System.out.println("Error appeared during tests execution: " + e.getMessage());
-        }
-        printStatistic();
-    }
-
-    private static Method[] getTestMethods(String className) {
         Class cl;
         try {
             cl = Class.forName(className);
         } catch (ClassNotFoundException e) {
             throw new TestExecutionException(String.format("Class %s is not found", className), e.getCause());
         }
+
+        try {
+            ClassMethods classMethods = new ClassMethods();
+            Arrays.stream(getTestMethods(cl)).forEach(m -> splitMethod(m, classMethods));
+            executeTestMethods(cl, classMethods);
+        } catch (TestExecutionException e) {
+            System.out.println("Error appeared during tests execution: " + e.getMessage());
+        }
+    }
+
+    private static Method[] getTestMethods(Class cl) {
         Method[] methods = cl.getDeclaredMethods();
         if (methods.length == 0) {
-            throw new TestExecutionException(String.format("Class %s does not have methods", className));
+            throw new TestExecutionException(String.format("Class %s does not have methods", cl.getName()));
         }
         return methods;
     }
 
-    private static void splitMethod(Method method) {
+    private static ClassMethods splitMethod(Method method, ClassMethods classMethods) {
         boolean isPrecondition = false;
+
         if (method.getParameterCount() > 0 || !method.getReturnType().equals(Void.TYPE)) {
             throw new TestExecutionException(String.format("Test method %s should be void and without parameters", method.getName()));
         }
         for (Annotation annotation : method.getAnnotations()) {
             if (After.class.equals(annotation.annotationType())) {
-                afterMethods.add(method);
+                classMethods.getAfterMethods().add(method);
                 isPrecondition = true;
             }
             if (Before.class.equals(annotation.annotationType())) {
-                beforeMethods.add(method);
+                classMethods.getBeforeMethods().add(method);
                 isPrecondition = true;
             }
             if (Test.class.equals(annotation.annotationType())) {
                 if (isPrecondition) {
                     throw new TestExecutionException("Annotation @Test can not be used together with @After or @Before");
                 }
-                testMethods.add(new TestMethod(method, ((Test) annotation).expected()));
+                classMethods.getTestMethods().add(new TestMethod(method, ((Test) annotation).expected()));
             }
         }
+        return classMethods;
     }
 
-    private static void executeTestMethods(String className) {
+    private static void executeTestMethods(Class cl, ClassMethods classMethods) {
+        List<TestMethod> testMethods = classMethods.getTestMethods();
         if (CollectionUtils.isEmpty(testMethods)) {
             throw new TestExecutionException("No test methods were found");
         }
 
+        int passed = 0;
+        int failed = 0;
+
         for (TestMethod testMethod : testMethods) {
             try {
-                Object testClass = Class.forName(className).getConstructor().newInstance();
-                runTest(testClass, testMethod);
-            } catch (ClassNotFoundException e) {
-                throw new TestExecutionException(String.format("Class %s is not found", className), e.getCause());
+                Object testClassInstance = cl.getConstructor().newInstance();
+                boolean result = runTest(testClassInstance, testMethod, classMethods.getBeforeMethods(), classMethods.getAfterMethods());
+                if (result) {
+                    passed += 1;
+                } else {
+                    failed += 1;
+                }
             } catch (NoSuchMethodException e) {
-                throw new TestExecutionException(String.format("Class %s should not have explicit constructor", className), e.getCause());
+                throw new TestExecutionException(String.format("Class %s should not have explicit constructor", cl.getName()), e.getCause());
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                throw new TestExecutionException(String.format("Instance of the class %s can not be created", className), e.getCause());
+                throw new TestExecutionException(String.format("Instance of the class %s can not be created", cl.getName()), e.getCause());
             }
         }
+
+        printStatistic(testMethods.size(), passed, failed);
     }
 
-    private static void runTest(Object testClass, TestMethod testMethod) {
+    private static boolean runTest(Object testClassInstance, TestMethod testMethod, List<Method>beforeMethods, List<Method> afterMethods) {
         try {
             for (Method m : beforeMethods) {
-                m.invoke(testClass);
+                m.invoke(testClassInstance);
             }
 
-            testMethod.getMethod().invoke(testClass);
-            passed += 1;
+            testMethod.getMethod().invoke(testClassInstance);
 
-            for (Method m : afterMethods) {
-                m.invoke(testClass);
-            }
         } catch (IllegalAccessException | InvocationTargetException e) {
             if ((testMethod.getExpected()).equals(e.getCause().getClass())) {
-                passed += 1;
+                return true;
             } else {
-                failed += 1;
+                return false;
+            }
+        }
+
+        runAfterMethods(testClassInstance, afterMethods);
+
+        return true;
+    }
+
+    private static void runAfterMethods(Object testClassInstance, List<Method> afterMethods) {
+        for (Method m : afterMethods) {
+            try {
+                m.invoke(testClassInstance);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                System.out.println(String.format("Failed to execute method %s", m.getName()));
             }
         }
     }
 
-    private static void printStatistic() {
+    private static void printStatistic(int sum, int passed, int failed) {
         System.out.println(String.format("Number of tests to execute: %d\n" +
                         "Number of passed tests: %d\n" +
                         "Number of failed tests: %d\n",
-                testMethods.size(), passed, failed));
+                sum, passed, failed));
     }
 }
