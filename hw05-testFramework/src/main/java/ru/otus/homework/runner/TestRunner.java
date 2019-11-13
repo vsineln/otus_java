@@ -1,14 +1,9 @@
 package ru.otus.homework.runner;
 
 import org.apache.commons.collections4.CollectionUtils;
-import ru.otus.homework.annotations.After;
-import ru.otus.homework.annotations.Before;
-import ru.otus.homework.annotations.Test;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -26,8 +21,7 @@ public class TestRunner {
         }
 
         try {
-            ClassMethods classMethods = new ClassMethods();
-            Arrays.stream(getTestMethods(cl)).forEach(m -> splitMethod(m, classMethods));
+            ClassMethods classMethods = new ClassMethods(getTestMethods(cl));
             executeTestMethods(cl, classMethods);
         } catch (TestExecutionException e) {
             System.out.println("Error appeared during tests execution: " + e.getMessage());
@@ -42,31 +36,6 @@ public class TestRunner {
         return methods;
     }
 
-    private static ClassMethods splitMethod(Method method, ClassMethods classMethods) {
-        boolean isPrecondition = false;
-
-        if (method.getParameterCount() > 0 || !method.getReturnType().equals(Void.TYPE)) {
-            throw new TestExecutionException(String.format("Test method %s should be void and without parameters", method.getName()));
-        }
-        for (Annotation annotation : method.getAnnotations()) {
-            if (After.class.equals(annotation.annotationType())) {
-                classMethods.getAfterMethods().add(method);
-                isPrecondition = true;
-            }
-            if (Before.class.equals(annotation.annotationType())) {
-                classMethods.getBeforeMethods().add(method);
-                isPrecondition = true;
-            }
-            if (Test.class.equals(annotation.annotationType())) {
-                if (isPrecondition) {
-                    throw new TestExecutionException("Annotation @Test can not be used together with @After or @Before");
-                }
-                classMethods.getTestMethods().add(new TestMethod(method, ((Test) annotation).expected()));
-            }
-        }
-        return classMethods;
-    }
-
     private static void executeTestMethods(Class cl, ClassMethods classMethods) {
         List<TestMethod> testMethods = classMethods.getTestMethods();
         if (CollectionUtils.isEmpty(testMethods)) {
@@ -74,7 +43,6 @@ public class TestRunner {
         }
 
         int passed = 0;
-        int failed = 0;
 
         for (TestMethod testMethod : testMethods) {
             try {
@@ -82,8 +50,6 @@ public class TestRunner {
                 boolean result = runTest(testClassInstance, testMethod, classMethods.getBeforeMethods(), classMethods.getAfterMethods());
                 if (result) {
                     passed += 1;
-                } else {
-                    failed += 1;
                 }
             } catch (NoSuchMethodException e) {
                 throw new TestExecutionException(String.format("Class %s should not have explicit constructor", cl.getName()), e.getCause());
@@ -92,10 +58,10 @@ public class TestRunner {
             }
         }
 
-        printStatistic(testMethods.size(), passed, failed);
+        printStatistic(testMethods.size(), passed);
     }
 
-    private static boolean runTest(Object testClassInstance, TestMethod testMethod, List<Method>beforeMethods, List<Method> afterMethods) {
+    private static boolean runTest(Object testClassInstance, TestMethod testMethod, List<Method> beforeMethods, List<Method> afterMethods) {
         try {
             for (Method m : beforeMethods) {
                 m.invoke(testClassInstance);
@@ -126,10 +92,10 @@ public class TestRunner {
         }
     }
 
-    private static void printStatistic(int sum, int passed, int failed) {
+    private static void printStatistic(int sum, int passed) {
         System.out.println(String.format("Number of tests to execute: %d\n" +
                         "Number of passed tests: %d\n" +
                         "Number of failed tests: %d\n",
-                sum, passed, failed));
+                sum, passed, (sum - passed)));
     }
 }
