@@ -16,13 +16,10 @@ public class TestRunner {
         Class cl;
         try {
             cl = Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new TestExecutionException(String.format("Class %s is not found", className), e.getCause());
-        }
-
-        try {
             ClassMethods classMethods = new ClassMethods(getTestMethods(cl));
             executeTestMethods(cl, classMethods);
+        } catch (ClassNotFoundException e) {
+            throw new TestExecutionException(String.format("Class %s is not found", className), e.getCause());
         } catch (TestExecutionException e) {
             System.out.println("Error appeared during tests execution: " + e.getMessage());
         }

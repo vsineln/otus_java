@@ -19,28 +19,7 @@ public class ClassMethods {
     private List<TestMethod> testMethods = new ArrayList<>();
 
     public ClassMethods(Method[] methods) {
-        for (Method method : methods) {
-            boolean isPrecondition = false;
-            if (method.getParameterCount() > 0 || !method.getReturnType().equals(Void.TYPE)) {
-                throw new TestExecutionException(String.format("Test method %s should be void and without parameters", method.getName()));
-            }
-            for (Annotation annotation : method.getAnnotations()) {
-                if (After.class.equals(annotation.annotationType())) {
-                    afterMethods.add(method);
-                    isPrecondition = true;
-                }
-                if (Before.class.equals(annotation.annotationType())) {
-                    beforeMethods.add(method);
-                    isPrecondition = true;
-                }
-                if (Test.class.equals(annotation.annotationType())) {
-                    if (isPrecondition) {
-                        throw new TestExecutionException("Annotation @Test can not be used together with @After or @Before");
-                    }
-                    testMethods.add(new TestMethod(method, ((Test) annotation).expected()));
-                }
-            }
-        }
+        splitMethods(methods);
     }
 
     public List<Method> getAfterMethods() {
@@ -53,5 +32,35 @@ public class ClassMethods {
 
     public List<TestMethod> getTestMethods() {
         return testMethods;
+    }
+
+    private void splitMethods(Method[] methods) {
+        for (Method method : methods) {
+            if (method.getParameterCount() > 0 || !method.getReturnType().equals(Void.TYPE)) {
+                throw new TestExecutionException(String.format("Test method %s should be void and without parameters", method.getName()));
+            }
+            splitMethodByAnnotation(method);
+        }
+    }
+
+    private void splitMethodByAnnotation(Method method) {
+        boolean isPrecondition = false;
+        for (Annotation annotation : method.getAnnotations()) {
+            Class<? extends Annotation> annotationType = annotation.annotationType();
+            if (After.class.equals(annotationType)) {
+                afterMethods.add(method);
+                isPrecondition = true;
+            }
+            if (Before.class.equals(annotationType)) {
+                beforeMethods.add(method);
+                isPrecondition = true;
+            }
+            if (Test.class.equals(annotationType)) {
+                if (isPrecondition) {
+                    throw new TestExecutionException("Annotation @Test can not be used together with @After or @Before");
+                }
+                testMethods.add(new TestMethod(method, ((Test) annotation).expected()));
+            }
+        }
     }
 }
