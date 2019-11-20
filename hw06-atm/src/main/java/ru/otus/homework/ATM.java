@@ -4,10 +4,9 @@ import lombok.extern.java.Log;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,13 +18,13 @@ import java.util.stream.Collectors;
  */
 @Log
 public class ATM {
-    private Comparator<Cell> compareCells = Comparator.comparing(Cell::getNominal, Comparator.reverseOrder());
-    private Set<Integer> defaultNominals = new HashSet<>(Arrays.asList(100, 200, 500, 1000, 5000));
+    private final Comparator<Cell> compareCells = Comparator.comparing(Cell::getNominal, Comparator.reverseOrder());
+    private static final EnumSet<DEFAULT_NOMINALS> defaultNominals = EnumSet.allOf(DEFAULT_NOMINALS.class);
     private Set<Integer> banknotesNominals = new HashSet<>();
     private Set<Cell> cells;
 
     public ATM() {
-        initiateNominals(defaultNominals);
+        initiateWithDefaultNominals();
         initiateCells();
     }
 
@@ -40,19 +39,22 @@ public class ATM {
      * @param banknotes to add
      * @return Collection of unknown banknotes
      */
-    public Collection<Integer> addBanknotes(List<Integer> banknotes) {
+    public void addBanknotes(List<Integer> banknotes) {
         log.info("Add banknotes");
         if (CollectionUtils.isEmpty(banknotes)) {
-            throw new ATMException("No banknotes to add");
+            throw new IllegalArgumentException("No banknotes to add");
         }
 
-        List<Integer> knownBanknotes = banknotes.stream().
-                filter(banknote -> banknotesNominals.contains(banknote)).collect(Collectors.toList());
+        List<Integer> knownBanknotes = findKnownBanknotes(banknotes);
+
         for (Integer banknote : knownBanknotes) {
             Cell cell = findCell(banknote);
             cell.addBanknote();
         }
-        return CollectionUtils.disjunction(banknotes, knownBanknotes);
+
+        if (CollectionUtils.disjunction(banknotes, knownBanknotes).size() > 0) {
+            throw new ATMException("Banknotes with unknown nominal were found");
+        }
     }
 
     /**
@@ -121,18 +123,23 @@ public class ATM {
         for (Integer nominal : banknotesNominals) {
             cells.add(new Cell(nominal));
         }
+    }
 
+    private void initiateWithDefaultNominals() {
+        Set<Integer> nominalValues = defaultNominals.stream().map(n -> n.getValue()).collect(Collectors.toSet());
+        banknotesNominals.addAll(nominalValues);
     }
 
     private void initiateNominals(Set<Integer> nominals) {
-        if (CollectionUtils.isEmpty(nominals)) {
-            banknotesNominals.addAll(defaultNominals);
-        } else {
-            banknotesNominals.addAll(nominals);
-        }
+        banknotesNominals.addAll(nominals);
     }
 
     private Cell findCell(Integer nominal) {
         return cells.stream().filter(cell -> cell.getNominal() == nominal).findAny().get();
+    }
+
+    private List<Integer> findKnownBanknotes(List<Integer> banknotes) {
+        return banknotes.stream().
+                filter(banknote -> banknotesNominals.contains(banknote)).collect(Collectors.toList());
     }
 }
