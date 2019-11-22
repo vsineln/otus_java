@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -19,35 +18,31 @@ import java.util.stream.Collectors;
 @Log
 public class ATM {
     private final Comparator<Cell> compareCells = Comparator.comparing(Cell::getNominal, Comparator.reverseOrder());
-    private static final EnumSet<DEFAULT_NOMINALS> defaultNominals = EnumSet.allOf(DEFAULT_NOMINALS.class);
-    private Set<Integer> banknotesNominals = new HashSet<>();
-    private Set<Cell> cells;
+    private static final Set<Nominal> defaulNominals = EnumSet.allOf(Nominal.class);
+    private Set<Cell> cells = new TreeSet<>(compareCells);
 
     public ATM() {
-        initiateWithDefaultNominals();
-        initiateCells();
+        initiateCells(defaulNominals);
     }
 
-    public ATM(Set<Integer> nominals) {
-        initiateNominals(nominals);
-        initiateCells();
+    public ATM(Set<Nominal> banknotesNominals) {
+        initiateCells(banknotesNominals);
     }
 
     /**
      * Adds banknotes in appropriate Cells in ATM
      *
      * @param banknotes to add
-     * @return Collection of unknown banknotes
      */
-    public void addBanknotes(List<Integer> banknotes) {
+    public void addBanknotes(List<Nominal> banknotes) {
         log.info("Add banknotes");
         if (CollectionUtils.isEmpty(banknotes)) {
             throw new IllegalArgumentException("No banknotes to add");
         }
 
-        List<Integer> knownBanknotes = findKnownBanknotes(banknotes);
+        List<Nominal> knownBanknotes = findKnownBanknotes(banknotes);
 
-        for (Integer banknote : knownBanknotes) {
+        for (Nominal banknote : knownBanknotes) {
             Cell cell = findCell(banknote);
             cell.addBanknote();
         }
@@ -63,26 +58,14 @@ public class ATM {
      * @param sum to get
      * @return List of banknotes which covers requested sum
      */
-    public List<Integer> getBanknotes(int sum) {
+    public List<Nominal> getBanknotes(int sum) {
         log.info("Get banknotes");
         if (sum > getBalance()) {
             throw new ATMException("Not enough money");
         }
 
-        List<Integer> result = new ArrayList<>();
-        for (Cell cell : cells) {
-            int nominal = cell.getNominal();
-            int count = cell.getCount();
-            while (sum - nominal >= 0 && count > 0) {
-                result.add(nominal);
-                sum -= nominal;
-                count--;
-            }
-        }
-        if (sum > 0) {
-            throw new ATMException("Not enough banknotes for requested sum");
-        }
-        for (Integer nominal : result) {
+        List<Nominal> result = getSum(sum);
+        for (Nominal nominal : result) {
             Cell cell = findCell(nominal);
             cell.removeBanknote();
         }
@@ -94,7 +77,7 @@ public class ATM {
      *
      * @return List of all banknotes from ATM
      */
-    public List<Integer> getAllBanknote() {
+    public List<Nominal> getAllBanknote() {
         log.info("Get all banknotes");
         if (CollectionUtils.isEmpty(cells)) {
             throw new ATMException("ATM is empty");
@@ -102,10 +85,10 @@ public class ATM {
         if (getBalance() == 0) {
             throw new ATMException("Balance is empty");
         }
-        List<Integer> banknotesToReturn = cells.stream().
+        List<Nominal> banknotesToReturn = cells.stream().
                 flatMap(cell -> Collections.nCopies(cell.getCount(), cell.getNominal()).stream()).
                 collect(Collectors.toList());
-        initiateCells();
+        refreshCells();
         return banknotesToReturn;
     }
 
@@ -115,31 +98,46 @@ public class ATM {
      * @return balance of the ATM
      */
     public int getBalance() {
-        return cells.stream().map(cell -> cell.getNominal() * cell.getCount()).mapToInt(Integer::intValue).sum();
+        return cells.stream().map(cell -> cell.getNominal().getValue() * cell.getCount()).mapToInt(Integer::intValue).sum();
     }
 
-    private void initiateCells() {
-        cells = new TreeSet<>(compareCells);
-        for (Integer nominal : banknotesNominals) {
+    private void initiateCells(Set<Nominal> banknotesNominals) {
+        for (Nominal nominal : banknotesNominals) {
             cells.add(new Cell(nominal));
         }
     }
 
-    private void initiateWithDefaultNominals() {
-        Set<Integer> nominalValues = defaultNominals.stream().map(n -> n.getValue()).collect(Collectors.toSet());
-        banknotesNominals.addAll(nominalValues);
-    }
-
-    private void initiateNominals(Set<Integer> nominals) {
-        banknotesNominals.addAll(nominals);
-    }
-
-    private Cell findCell(Integer nominal) {
+    private Cell findCell(Nominal nominal) {
         return cells.stream().filter(cell -> cell.getNominal() == nominal).findAny().get();
     }
 
-    private List<Integer> findKnownBanknotes(List<Integer> banknotes) {
+    private List<Nominal> findKnownBanknotes(List<Nominal> banknotes) {
         return banknotes.stream().
-                filter(banknote -> banknotesNominals.contains(banknote)).collect(Collectors.toList());
+                filter(banknote -> getNominals().contains(banknote)).collect(Collectors.toList());
+    }
+
+    private Set<Nominal> getNominals() {
+        return cells.stream().map(Cell::getNominal).collect(Collectors.toSet());
+    }
+
+    private void refreshCells() {
+        cells.forEach(Cell::removeAllBanknotes);
+    }
+
+    private List<Nominal> getSum(int sum){
+        List<Integer> result = new ArrayList<>();
+        for (Cell cell : cells) {
+            int nominal = cell.getNominal().getValue();
+            int count = cell.getCount();
+            while (sum - nominal >= 0 && count > 0) {
+                result.add(nominal);
+                sum -= nominal;
+                count--;
+            }
+        }
+        if (sum > 0) {
+            throw new ATMException("Not enough banknotes for requested sum");
+        }
+        return result.stream().map(Nominal::valueOf).collect(Collectors.toList());
     }
 }
