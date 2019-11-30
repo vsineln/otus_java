@@ -30,4 +30,12 @@ public class Cell {
     public int getCount() {
         return count;
     }
+
+    @Override
+    public String toString() {
+        return "Cell{" +
+                "nominal=" + nominal +
+                ", count=" + count +
+                '}';
+    }
 }
