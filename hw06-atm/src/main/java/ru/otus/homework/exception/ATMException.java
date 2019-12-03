@@ -1,4 +1,4 @@
-package ru.otus.homework;
+package ru.otus.homework.exception;
 
 /**
  * Class reflects exception which can appear during ATM's work

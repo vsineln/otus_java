@@ -1,4 +1,6 @@
-package ru.otus.homework;
+package ru.otus.homework.impl;
+
+import ru.otus.homework.ATM;
 
 /**
  * Class for holding ATM instance with its id, id is set while adding ATM to department

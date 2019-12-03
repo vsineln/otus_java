@@ -3,12 +3,14 @@ package ru.otus.homework;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.otus.homework.impl.AtmDepartmentImpl;
+import ru.otus.homework.impl.AtmImpl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static ru.otus.homework.Nominal.*;
+import static ru.otus.homework.impl.Nominal.*;
 
 class AtmDepartmentTest {
     private ATM atm1;
@@ -18,14 +20,14 @@ class AtmDepartmentTest {
 
     @BeforeEach
     public void init() {
-        atm1 = new ATM(Sets.newHashSet(ONE_HUNDRED, TWO_HUNDRED, FIVE_HUNDRED));
-        atm2 = new ATM(Sets.newHashSet(ONE_THOUSAND, TWO_THOUSAND, FIVE_THOUSAND));
-        atm3 = new ATM(Sets.newHashSet(ONE_HUNDRED, TWO_HUNDRED, FIVE_HUNDRED, ONE_THOUSAND, TWO_THOUSAND, FIVE_THOUSAND));
+        atm1 = new AtmImpl(Sets.newHashSet(ONE_HUNDRED, TWO_HUNDRED, FIVE_HUNDRED));
+        atm2 = new AtmImpl(Sets.newHashSet(ONE_THOUSAND, TWO_THOUSAND, FIVE_THOUSAND));
+        atm3 = new AtmImpl(Sets.newHashSet(ONE_HUNDRED, TWO_HUNDRED, FIVE_HUNDRED, ONE_THOUSAND, TWO_THOUSAND, FIVE_THOUSAND));
     }
 
     @Test
     public void checkCommonBalance() {
-        department = new AtmDepartment(Arrays.asList(atm1, atm2, atm3));
+        department = new AtmDepartmentImpl(Arrays.asList(atm1, atm2, atm3));
         addBnaknotesToAtm();
 
         int balance = department.checkCommonBalance();
@@ -35,7 +37,7 @@ class AtmDepartmentTest {
 
     @Test
     public void restoreInitialState_whenDepartmentInitializedWithEmptyATM() {
-        department = new AtmDepartment(Arrays.asList(atm1, atm2, atm3));
+        department = new AtmDepartmentImpl(Arrays.asList(atm1, atm2, atm3));
         addBnaknotesToAtm();
         assertEquals(18000, department.checkCommonBalance());
 
@@ -47,7 +49,7 @@ class AtmDepartmentTest {
     @Test
     public void restoreInitialState_whenDepartmentInitializedWithNonEmptyATM() {
         addBnaknotesToAtm();
-        department = new AtmDepartment(Arrays.asList(atm1, atm2, atm3));
+        department = new AtmDepartmentImpl(Arrays.asList(atm1, atm2, atm3));
         assertEquals(18000, department.checkCommonBalance());
         addBnaknotesToAtm();
         assertEquals(36000, department.checkCommonBalance());
@@ -59,7 +61,7 @@ class AtmDepartmentTest {
 
     @Test
     public void restorePreviousState() {
-        department = new AtmDepartment(Arrays.asList(atm1, atm2, atm3));
+        department = new AtmDepartmentImpl(Arrays.asList(atm1, atm2, atm3));
         addBnaknotesToAtm();
         assertEquals(18000, department.checkCommonBalance());
 

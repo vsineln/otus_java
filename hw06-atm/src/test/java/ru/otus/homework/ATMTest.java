@@ -2,20 +2,23 @@ package ru.otus.homework;
 
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
+import ru.otus.homework.exception.ATMException;
+import ru.otus.homework.impl.AtmImpl;
+import ru.otus.homework.impl.Nominal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static ru.otus.homework.Nominal.*;
+import static ru.otus.homework.impl.Nominal.*;
 
 class ATMTest {
     private ATM atm;
 
     @Test
     void addBanknotesOfKnownNominal() {
-        atm = new ATM();
+        atm = new AtmImpl();
         assertEquals(0, atm.getBalance());
 
         atm.addBanknotes(
@@ -26,7 +29,7 @@ class ATMTest {
 
     @Test
     void addBanknotesOfUnknownNominal() {
-        atm = new ATM(Sets.newHashSet(ONE_HUNDRED, TWO_HUNDRED, FIVE_HUNDRED));
+        atm = new AtmImpl(Sets.newHashSet(ONE_HUNDRED, TWO_HUNDRED, FIVE_HUNDRED));
         assertEquals(0, atm.getBalance());
 
         assertThrows(ATMException.class, () -> atm.addBanknotes(
@@ -37,7 +40,7 @@ class ATMTest {
 
     @Test
     void getBanknotesBySum() {
-        atm = new ATM();
+        atm = new AtmImpl();
         atm.addBanknotes(new ArrayList<>(Arrays.asList(ONE_HUNDRED, TWO_HUNDRED, ONE_HUNDRED, FIVE_HUNDRED, ONE_THOUSAND, FIVE_HUNDRED, ONE_HUNDRED)));
         assertEquals(2500, atm.getBalance());
 
@@ -50,7 +53,7 @@ class ATMTest {
 
     @Test
     public void getBanknotesBySumIsImpossible() {
-        atm = new ATM();
+        atm = new AtmImpl();
         atm.addBanknotes(new ArrayList<>(Arrays.asList(ONE_HUNDRED, TWO_HUNDRED, ONE_HUNDRED, FIVE_HUNDRED, ONE_THOUSAND, FIVE_HUNDRED, ONE_HUNDRED)));
         assertEquals(2500, atm.getBalance());
 
@@ -60,7 +63,7 @@ class ATMTest {
 
     @Test
     void getAllBanknote() {
-        atm = new ATM();
+        atm = new AtmImpl();
         atm.addBanknotes(new ArrayList<>(Arrays.asList(ONE_HUNDRED, ONE_HUNDRED, ONE_HUNDRED, TWO_HUNDRED, FIVE_HUNDRED)));
         assertEquals(1000, atm.getBalance());
 
@@ -73,7 +76,7 @@ class ATMTest {
 
     @Test
     public void testDefaultNominals() {
-        atm = new ATM();
+        atm = new AtmImpl();
         atm.addBanknotes(new ArrayList<>(Arrays.asList(TWO_HUNDRED, ONE_HUNDRED, ONE_HUNDRED, TWO_HUNDRED, TWO_HUNDRED, TWO_HUNDRED, ONE_THOUSAND)));
         assertEquals(2000, atm.getBalance());
 

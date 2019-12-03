@@ -1,43 +1,30 @@
 package ru.otus.homework;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
+import ru.otus.homework.impl.Nominal;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * Class for retrieving information from ATMs
- */
-public class AtmInteraction {
-    private List<AtmPoint> atmPoints;
+public interface AtmInteraction {
 
-    public AtmInteraction(List<AtmPoint> atmPoints) {
-        this.atmPoints = atmPoints;
-    }
+    /**
+     * Calculate common balance for all known ATM
+     *
+     * @return balance value
+     */
+    int getBalance();
 
-    public int getBalance() {
-        return getState().values().stream().flatMap(Collection::stream).mapToInt(Nominal::getValue).sum();
-    }
+    /**
+     * Get state of all known ATM
+     *
+     * @return id of ATM with list of all its banknotes
+     */
+    Map<Integer, List<Nominal>> getState();
 
-    public Map<Integer, List<Nominal>> getState() {
-        return atmPoints.stream().collect(Collectors.
-                toMap(atmPoint -> atmPoint.getId(), atmPoint -> atmPoint.getAtm().getState()));
-    }
-
-    public void updateState(Map<Integer, List<Nominal>> stateToUpdate) {
-        Set<Integer> currentId = atmPoints.stream().map(atmPoint -> atmPoint.getId()).collect(Collectors.toSet());
-        if (MapUtils.isEmpty(stateToUpdate) || !CollectionUtils.isEqualCollection(currentId, stateToUpdate.keySet())) {
-            throw new ATMException("Atm update failure");
-        }
-
-        atmPoints.forEach(atmPoint -> {
-            int id = atmPoint.getId();
-            List<Nominal> banknotes = stateToUpdate.get(id);
-            atmPoint.getAtm().updateState(banknotes);
-        });
-    }
+    /**
+     * Update state of all known ATM
+     *
+     * @param stateToUpdate id of ATM and list of banknotes which should be hold in it
+     */
+    void updateState(Map<Integer, List<Nominal>> stateToUpdate);
 }

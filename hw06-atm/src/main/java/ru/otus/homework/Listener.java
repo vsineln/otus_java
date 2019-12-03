@@ -1,5 +1,7 @@
 package ru.otus.homework;
 
+import ru.otus.homework.impl.Nominal;
+
 import java.util.List;
 
 /**
