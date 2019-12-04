@@ -4,6 +4,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import ru.otus.homework.ATM;
 import ru.otus.homework.AtmConfiguration;
 import ru.otus.homework.AtmDepartment;
+import ru.otus.homework.AtmInteraction;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 public class AtmDepartmentImpl implements AtmDepartment {
     private static final AtomicInteger refId = new AtomicInteger();
     private AtmConfiguration atmConfiguration = new AtmConfigurationImpl();
-    private AtmInteractionImpl atmInteraction;
+    private AtmInteraction atmInteraction;
 
     public AtmDepartmentImpl(List<ATM> atmList) {
         atmInteraction = new AtmInteractionImpl(createAtmPoints(atmList));
