@@ -18,6 +18,7 @@
         <module>hw02-arrayList</module>
         <module>hw05-testFramework</module>
         <module>hw06-atm</module>
+        <module>hw07-atm-department</module>
     </modules>
 
     <properties>

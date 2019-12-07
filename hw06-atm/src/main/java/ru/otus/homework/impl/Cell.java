@@ -1,4 +1,4 @@
-package ru.otus.homework;
+package ru.otus.homework.impl;
 
 /**
  * Class for ATM's Cell, it consists of banknote's nominal and number of banknotes for this nominal
@@ -29,5 +29,13 @@ public class Cell {
 
     public int getCount() {
         return count;
+    }
+
+    @Override
+    public String toString() {
+        return "Cell{" +
+                "nominal=" + nominal +
+                ", count=" + count +
+                '}';
     }
 }
