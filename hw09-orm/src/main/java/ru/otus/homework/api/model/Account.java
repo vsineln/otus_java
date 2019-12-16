@@ -14,6 +14,11 @@ public class Account {
     public Account() {
     }
 
+    public Account(String type, BigDecimal rest) {
+        this.type = type;
+        this.rest = rest;
+    }
+
     public Account(Long no, String type, BigDecimal rest) {
         this.no = no;
         this.type = type;

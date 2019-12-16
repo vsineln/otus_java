@@ -2,14 +2,10 @@ package ru.otus.homework.jdbc;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import ru.otus.homework.annotation.Id;
 import ru.otus.homework.api.service.DbServiceException;
 import ru.otus.homework.jdbc.sessionmanager.SessionManagerJdbc;
+import ru.otus.homework.jdbc.reflection.ReflectionHelper;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,83 +13,69 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class JdbcTemplateImpl implements JdbcTemplate {
+public class JdbcTemplateImpl<T> implements JdbcTemplate<T> {
     private SessionManagerJdbc sessionManager;
+    private ReflectionHelper reflectionHelper = new ReflectionHelper();
 
     public JdbcTemplateImpl(SessionManagerJdbc sessionManager) {
         this.sessionManager = sessionManager;
     }
 
     @Override
-    public void create(Object objectData) {
-        Class clazz = objectData.getClass();
-        Field[] fields = clazz.getDeclaredFields();
-        String idField = findId(fields).getName();
-        Map<String, Object> valuesForFields = getValuesForFields(objectData, fields);
+    public long create(T objectData) {
+        Map<String, Object> valuesForFields = reflectionHelper.getFieldsWithValues(objectData);
+        String idField = reflectionHelper.getIdFieldName(objectData);
         valuesForFields.remove(idField);
         try {
-            saveObject(getConnection(), clazz.getSimpleName(), valuesForFields);
+            return saveObject(getConnection(), objectData.getClass().getSimpleName(), valuesForFields);
         } catch (SQLException e) {
             throw new JdbcException(e);
         }
     }
 
     @Override
-    public void update(Object objectData) {
-        Class clazz = objectData.getClass();
-        Field[] fields = clazz.getDeclaredFields();
-        String idField = findId(fields).getName();
-        Map<String, Object> valuesForFields = getValuesForFields(objectData, fields);
+    public void update(T objectData) {
+        Map<String, Object> valuesForFields = reflectionHelper.getFieldsWithValues(objectData);
+        String idField = reflectionHelper.getIdFieldName(objectData);
         Object idValue = valuesForFields.get(idField);
         valuesForFields.remove(idField);
         try {
-            updateObject(getConnection(), clazz, valuesForFields, Pair.of(idField, idValue));
+            updateObject(getConnection(), objectData.getClass(), valuesForFields, Pair.of(idField, idValue));
         } catch (SQLException e) {
             throw new JdbcException(e);
         }
     }
 
     @Override
-    public void createOrUpdate(Object objectData) {
-        Class cl = objectData.getClass();
-        Field[] fields = cl.getDeclaredFields();
-        String idField = findId(fields).getName();
-        Map<String, Object> valuesForFields = getValuesForFields(objectData, fields);
-        Object idValue = valuesForFields.get(idField);
-
-        Object object = load((Long) idValue, cl);
+    public void createOrUpdate(T objectData) {
+        Map<String, Object> valuesForFields = reflectionHelper.getFieldsWithValues(objectData);
+        String idField = reflectionHelper.getIdFieldName(objectData);
         try {
-            if (object == null) {
-                valuesForFields.remove(idField);
-                saveObject(getConnection(), cl.getSimpleName(), valuesForFields);
-            } else if (!objectData.equals(object)) {
-                updateObject(getConnection(), cl, valuesForFields, Pair.of(idField, idValue));
-            }
+            mergeObject(getConnection(), objectData.getClass().getSimpleName(),
+                    idField, new ArrayList(valuesForFields.values()));
         } catch (SQLException e) {
             throw new JdbcException(e);
         }
     }
 
     @Override
-    public Object load(long id, Class clazz) {
-        Field[] fields = clazz.getDeclaredFields();
-        Field idField = findId(fields);
-        Map<String, Class> typesForFields = getTypesForFields(fields);
+    public <T> T load(long id, Class<T> clazz) {
+        String idField = reflectionHelper.getIdFieldByClass(clazz);
+        Map<String, Class> typesForFields = reflectionHelper.getTypesForFields(clazz);
         try {
-            return getObjectById(getConnection(), clazz, Pair.of(idField.getName(), id), typesForFields);
+            return (T) getObjectById(getConnection(), clazz, Pair.of(idField, id), typesForFields);
         } catch (SQLException e) {
             throw new JdbcException(e);
         }
     }
 
-    private void saveObject(Connection connection, String tableName, Map<String, Object> params) throws SQLException {
+    private long saveObject(Connection connection, String tableName, Map<String, Object> params) throws SQLException {
         Savepoint savePoint = connection.setSavepoint("savePoint");
         String insertSql = insertSql(tableName, new LinkedList<>(params.keySet()));
 
@@ -103,32 +85,33 @@ public class JdbcTemplateImpl implements JdbcTemplate {
                 pst.setObject(idx + 1, values.get(idx));
             }
             pst.executeUpdate();
+            try (ResultSet rs = pst.getGeneratedKeys()) {
+                rs.next();
+                return rs.getInt(1);
+            }
         } catch (SQLException ex) {
             connection.rollback(savePoint);
             throw new DbServiceException(ex);
         }
     }
 
-    private Object getObjectById(Connection connection, Class clazz, Pair<String, Long> idPair,
+    private T getObjectById(Connection connection, Class clazz, Pair<String, Long> idPair,
                                  Map<String, Class> typesForFields) throws SQLException {
         String selectSql = selectByIdSql(clazz.getSimpleName(), idPair.getLeft());
 
         try (PreparedStatement pst = connection.prepareStatement(selectSql)) {
             pst.setLong(1, idPair.getRight());
             try (ResultSet rs = pst.executeQuery()) {
-                Object objectInstance = getInstance(clazz);
+                T objectInstance = (T) reflectionHelper.getClassInstance(clazz);
                 if (rs.next()) {
                     for (Map.Entry<String, Class> pair : typesForFields.entrySet()) {
                         Object paramValue = rs.getObject(pair.getKey(), pair.getValue());
-                        Method method = clazz.getDeclaredMethod(
-                                "set" + StringUtils.capitalize(pair.getKey()), pair.getValue());
-                        method.invoke(objectInstance, paramValue);
+                        String methodName = "set" + StringUtils.capitalize(pair.getKey());
+                        reflectionHelper.invokeMethod(objectInstance, clazz, methodName, paramValue, pair.getValue());
                     }
                     return objectInstance;
                 }
                 return null;
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new JdbcException(e);
             }
         }
     }
@@ -147,11 +130,18 @@ public class JdbcTemplateImpl implements JdbcTemplate {
         }
     }
 
-    private Object getInstance(Class clazz) {
-        try {
-            return clazz.getConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new JdbcException(e);
+    private void mergeObject(Connection connection, String tableName, String idKey, List<Object> params) throws SQLException {
+        Savepoint savePoint = connection.setSavepoint("savePoint");
+        String mergeSql = mergeSql(tableName, idKey, params.size());
+
+        try (PreparedStatement pst = connection.prepareStatement(mergeSql)) {
+            for (int idx = 0; idx < params.size(); idx++) {
+                pst.setObject(idx + 1, params.get(idx));
+            }
+            pst.executeUpdate();
+        } catch (SQLException ex) {
+            connection.rollback(savePoint);
+            throw new DbServiceException(ex);
         }
     }
 
@@ -159,38 +149,6 @@ public class JdbcTemplateImpl implements JdbcTemplate {
         return sessionManager.getCurrentSession().getConnection();
     }
 
-    private Field findId(Field[] fields) {
-        for (Field field : fields) {
-            for (Annotation annotation : field.getDeclaredAnnotations()) {
-                if (Id.class.equals(annotation.annotationType())) {
-                    return field;
-                }
-            }
-        }
-        throw new IllegalArgumentException("Field for @Id is not found");
-    }
-
-    private Map<String, Object> getValuesForFields(Object object, Field[] fields) {
-        Map<String, Object> fieldsMap = new LinkedHashMap<>();
-        try {
-            for (Field field : fields) {
-                field.setAccessible(true);
-                fieldsMap.put(field.getName(), field.get(object));
-            }
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-        return fieldsMap;
-    }
-
-    private Map<String, Class> getTypesForFields(Field[] fields) {
-        Map<String, Class> typesForValues = new LinkedHashMap<>();
-        for (Field field : fields) {
-            typesForValues.put(field.getName(), field.getType());
-        }
-        return typesForValues;
-    }
-    
     private String insertSql(String tableName, List<String> params) {
         StringBuilder sql = new StringBuilder("insert into ");
         sql.append(tableName);
@@ -219,6 +177,17 @@ public class JdbcTemplateImpl implements JdbcTemplate {
         sql.append("=? where ");
         sql.append(key);
         sql.append("=?");
+        return sql.toString();
+    }
+
+    private String mergeSql(String tableName, String key, int paramsNum) {
+        StringBuilder sql = new StringBuilder("merge into ");
+        sql.append(tableName);
+        sql.append(" key (");
+        sql.append(key);
+        sql.append(") values (");
+        sql.append(IntStream.range(0, paramsNum).mapToObj(i -> "?").collect(Collectors.joining(",")));
+        sql.append(")");
         return sql.toString();
     }
 }

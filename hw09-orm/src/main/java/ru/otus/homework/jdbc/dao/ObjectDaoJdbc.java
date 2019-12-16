@@ -29,9 +29,9 @@ public class ObjectDaoJdbc implements ObjectDao {
     }
 
     @Override
-    public void saveObject(Object object) {
+    public long saveObject(Object object) {
         try {
-            jdbcTemplate.create(object);
+            return jdbcTemplate.create(object);
         } catch (Exception e) {
             throw new DaoException(e);
         }

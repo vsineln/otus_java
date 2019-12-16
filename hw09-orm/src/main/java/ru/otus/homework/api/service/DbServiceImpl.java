@@ -13,12 +13,13 @@ public class DbServiceImpl implements DbService {
     }
 
     @Override
-    public void saveObject(Object object) {
+    public long saveObject(Object object) {
         try (SessionManager sessionManager = objectDao.getSessionManager()) {
             sessionManager.beginSession();
             try {
-                objectDao.saveObject(object);
+                long objectId = objectDao.saveObject(object);
                 sessionManager.commitSession();
+                return objectId;
             } catch (Exception e) {
                 sessionManager.rollbackSession();
                 throw new DbServiceException(e);

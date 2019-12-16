@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class JdbcTemplateTest {
     private DbService dbService;
     private DataSource dataSource;
-    private User user1 = new User(1, "name1", 20);
-    private User user2 = new User(2, "name2", 30);
-    private Account account1 = new Account(1l, "account1", new BigDecimal(111));
-    private Account account2 = new Account(2l, "account2", new BigDecimal(333));
+    private User user1 = new User("name1", 20);
+    private User user2 = new User("name2", 30);
+    private Account account1 = new Account("account1", new BigDecimal(111));
+    private Account account2 = new Account("account2", new BigDecimal(333));
 
     @BeforeEach
     public void init() throws SQLException {
@@ -42,76 +42,82 @@ class JdbcTemplateTest {
 
     @Test
     void createAndLoadUsers() {
-        dbService.saveObject(user1);
-        dbService.saveObject(user2);
+        long id1 = dbService.saveObject(user1);
+        long id2 = dbService.saveObject(user2);
 
-        User returnedUser1 = (User) dbService.getObject(1, User.class).get();
-        User returnedUser2 = (User) dbService.getObject(2, User.class).get();
+        User returnedUser1 = (User) dbService.getObject(id1, User.class).get();
+        User returnedUser2 = (User) dbService.getObject(id2, User.class).get();
 
-        assertEquals(user1, returnedUser1);
-        assertEquals(user2, returnedUser2);
+        assertEquals(user1.getName(), returnedUser1.getName());
+        assertEquals(user1.getAge(), returnedUser1.getAge());
+        assertEquals(user2.getName(), returnedUser2.getName());
+        assertEquals(user2.getAge(), returnedUser2.getAge());
     }
 
     @Test
     void createAndLoadAccounts() {
-        dbService.saveObject(account1);
-        dbService.saveObject(account2);
+        long id1 = dbService.saveObject(account1);
+        long id2 = dbService.saveObject(account2);
 
-        Account returnedAccount1 = (Account) dbService.getObject(1, Account.class).get();
-        Account returnedAccount2 = (Account) dbService.getObject(2, Account.class).get();
+        Account returnedAccount1 = (Account) dbService.getObject(id1, Account.class).get();
+        Account returnedAccount2 = (Account) dbService.getObject(id2, Account.class).get();
 
-        assertEquals(account1, returnedAccount1);
-        assertEquals(account2, returnedAccount2);
+        assertEquals(account1.getType(), returnedAccount1.getType());
+        assertEquals(account1.getRest(), returnedAccount1.getRest());
+        assertEquals(account2.getType(), returnedAccount2.getType());
+        assertEquals(account2.getRest(), returnedAccount2.getRest());
     }
 
     @Test
     void createAndUpdateUser() {
-        dbService.saveObject(user1);
+        long id = dbService.saveObject(user1);
 
-        dbService.updateObject(new User(1, "updatedName", 100));
+        dbService.updateObject(new User(id, "updatedName", 100));
 
-        User returnedUser1 = (User) dbService.getObject(1, User.class).get();
+        User returnedUser1 = (User) dbService.getObject(id, User.class).get();
         assertEquals("updatedName", returnedUser1.getName());
         assertEquals(100, returnedUser1.getAge().intValue());
     }
 
     @Test
     void createAndUpdateAccount() {
-        dbService.saveObject(account1);
+        long id = dbService.saveObject(account1);
 
-        dbService.updateObject(new Account(1l, "updatedAccount", new BigDecimal(1000)));
+        dbService.updateObject(new Account(id, "updatedAccount", new BigDecimal(1000)));
 
-        Account returnedAccount1 = (Account) dbService.getObject(1, Account.class).get();
+        Account returnedAccount1 = (Account) dbService.getObject(id, Account.class).get();
         assertEquals("updatedAccount", returnedAccount1.getType());
         assertEquals(1000, returnedAccount1.getRest().intValue());
     }
 
     @Test
     void createOrUpdateUser() {
-        dbService.saveObject(user1);
-        dbService.createOrUpdate(new User(1, "name1", 40));
+        long id = dbService.saveObject(user1);
+        dbService.createOrUpdate(new User(id, "name1", 40));
 
-        User returnedUser1 = (User) dbService.getObject(1, User.class).get();
+        User returnedUser1 = (User) dbService.getObject(id, User.class).get();
         assertEquals("name1", returnedUser1.getName());
         assertEquals(40, returnedUser1.getAge().intValue());
 
-        dbService.createOrUpdate(new User(2, "name", 37));
-        User returnedUser2 = (User) dbService.getObject(2, User.class).get();
+        id += 1;
+        dbService.createOrUpdate(new User(id, "name", 37));
+        User returnedUser2 = (User) dbService.getObject(id, User.class).get();
         assertEquals("name", returnedUser2.getName());
         assertEquals(37, returnedUser2.getAge().intValue());
     }
 
     @Test
     void createOrUpdateAccount() {
-        dbService.saveObject(account1);
-        dbService.createOrUpdate(new Account(1l, "account1", new BigDecimal(222)));
+        long id = dbService.saveObject(account1);
+        dbService.createOrUpdate(new Account(id, "account1", new BigDecimal(222)));
 
-        Account returnedAccount1 = (Account) dbService.getObject(1, Account.class).get();
+        Account returnedAccount1 = (Account) dbService.getObject(id, Account.class).get();
         assertEquals("account1", returnedAccount1.getType());
         assertEquals(222, returnedAccount1.getRest().intValue());
 
-        dbService.createOrUpdate(new Account(2l, "account3", new BigDecimal(444)));
-        Account returnedAccount2 = (Account) dbService.getObject(2, Account.class).get();
+        id = id + 1;
+        dbService.createOrUpdate(new Account(id, "account3", new BigDecimal(444)));
+        Account returnedAccount2 = (Account) dbService.getObject(id, Account.class).get();
         assertEquals("account3", returnedAccount2.getType());
         assertEquals(444, returnedAccount2.getRest().intValue());
     }

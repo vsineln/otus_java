@@ -7,7 +7,7 @@ import java.util.Optional;
 public interface ObjectDao {
     Optional<Object> findById(long id, Class cl);
 
-    void saveObject(Object object);
+    long saveObject(Object object);
 
     void updateObject(Object object);
 

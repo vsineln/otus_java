@@ -13,6 +13,11 @@ public class User {
     public User() {
     }
 
+    public User(String name, Integer age) {
+        this.name = name;
+        this.age = age;
+    }
+
     public User(long id, String name, int age) {
         this.id = id;
         this.name = name;
