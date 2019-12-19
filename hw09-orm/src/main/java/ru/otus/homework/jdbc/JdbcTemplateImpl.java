@@ -6,6 +6,7 @@ import ru.otus.homework.api.service.DbServiceException;
 import ru.otus.homework.jdbc.sessionmanager.SessionManagerJdbc;
 import ru.otus.homework.jdbc.reflection.ReflectionHelper;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -67,9 +68,9 @@ public class JdbcTemplateImpl<T> implements JdbcTemplate<T> {
     @Override
     public <T> T load(long id, Class<T> clazz) {
         String idField = reflectionHelper.getIdFieldByClass(clazz);
-        Map<String, Class> typesForFields = reflectionHelper.getTypesForFields(clazz);
+        Field[] fields = reflectionHelper.getFields(clazz);
         try {
-            return (T) getObjectById(getConnection(), clazz, Pair.of(idField, id), typesForFields);
+            return (T) getObjectById(getConnection(), clazz, Pair.of(idField, id), fields);
         } catch (SQLException e) {
             throw new JdbcException(e);
         }
@@ -96,7 +97,7 @@ public class JdbcTemplateImpl<T> implements JdbcTemplate<T> {
     }
 
     private T getObjectById(Connection connection, Class clazz, Pair<String, Long> idPair,
-                                 Map<String, Class> typesForFields) throws SQLException {
+                            Field[] fields) throws SQLException {
         String selectSql = selectByIdSql(clazz.getSimpleName(), idPair.getLeft());
 
         try (PreparedStatement pst = connection.prepareStatement(selectSql)) {
@@ -104,10 +105,9 @@ public class JdbcTemplateImpl<T> implements JdbcTemplate<T> {
             try (ResultSet rs = pst.executeQuery()) {
                 T objectInstance = (T) reflectionHelper.getClassInstance(clazz);
                 if (rs.next()) {
-                    for (Map.Entry<String, Class> pair : typesForFields.entrySet()) {
-                        Object paramValue = rs.getObject(pair.getKey(), pair.getValue());
-                        String methodName = "set" + StringUtils.capitalize(pair.getKey());
-                        reflectionHelper.invokeMethod(objectInstance, clazz, methodName, paramValue, pair.getValue());
+                    for (Field field : fields) {
+                        Object paramValue = rs.getObject(field.getName(), field.getType());
+                        reflectionHelper.setField(objectInstance, field, paramValue);
                     }
                     return objectInstance;
                 }

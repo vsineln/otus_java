@@ -6,7 +6,6 @@ import ru.otus.homework.jdbc.JdbcException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -27,13 +26,8 @@ public class ReflectionHelper {
         return getValuesForFields(objectData, fields);
     }
 
-    public Map<String, Class> getTypesForFields(Class clazz) {
-        Field[] fields = clazz.getDeclaredFields();
-        Map<String, Class> typesForValues = new LinkedHashMap<>();
-        for (Field field : fields) {
-            typesForValues.put(field.getName(), field.getType());
-        }
-        return typesForValues;
+    public Field[] getFields(Class clazz) {
+        return clazz.getDeclaredFields();
     }
 
     public Object getClassInstance(Class clazz) {
@@ -44,11 +38,11 @@ public class ReflectionHelper {
         }
     }
 
-    public void invokeMethod(Object objectInstance, Class clazz, String methodName, Object paramValue, Class paramType) {
+    public void setField(Object objectInstance, Field field, Object fieldValue) {
         try {
-            Method method = clazz.getDeclaredMethod(methodName, paramType);
-            method.invoke(objectInstance, paramValue);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            field.setAccessible(true);
+            field.set(objectInstance, fieldValue);
+        } catch (IllegalAccessException e) {
             throw new JdbcException(e);
         }
     }
