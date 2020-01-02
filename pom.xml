@@ -20,6 +20,7 @@
         <module>hw06-atm</module>
         <module>hw07-atm-department</module>
         <module>hw09-orm</module>
+        <module>hw10-hibernate</module>
     </modules>
 
     <properties>
