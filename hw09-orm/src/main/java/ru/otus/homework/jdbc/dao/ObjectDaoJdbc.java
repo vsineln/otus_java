@@ -43,8 +43,8 @@ public class ObjectDaoJdbc implements ObjectDao {
     }
 
     @Override
-    public void createOrUpdateObject(Object object) {
-        jdbcTemplate.createOrUpdate(object);
+    public long createOrUpdateObject(Object object) {
+        return jdbcTemplate.createOrUpdate(object);
     }
 
     @Override

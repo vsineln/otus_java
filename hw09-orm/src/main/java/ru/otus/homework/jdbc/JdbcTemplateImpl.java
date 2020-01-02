@@ -54,11 +54,11 @@ public class JdbcTemplateImpl<T> implements JdbcTemplate<T> {
     }
 
     @Override
-    public void createOrUpdate(T objectData) {
+    public long createOrUpdate(T objectData) {
         Map<String, Object> valuesForFields = reflectionHelper.getFieldsWithValues(objectData);
         String idField = reflectionHelper.getIdFieldName(objectData);
         try {
-            mergeObject(getConnection(), objectData.getClass().getSimpleName(),
+            return mergeObject(getConnection(), objectData.getClass().getSimpleName(),
                     idField, new ArrayList(valuesForFields.values()));
         } catch (SQLException e) {
             throw new JdbcException(e);
@@ -130,7 +130,7 @@ public class JdbcTemplateImpl<T> implements JdbcTemplate<T> {
         }
     }
 
-    private void mergeObject(Connection connection, String tableName, String idKey, List<Object> params) throws SQLException {
+    private long mergeObject(Connection connection, String tableName, String idKey, List<Object> params) throws SQLException {
         Savepoint savePoint = connection.setSavepoint("savePoint");
         String mergeSql = mergeSql(tableName, idKey, params.size());
 
@@ -139,10 +139,16 @@ public class JdbcTemplateImpl<T> implements JdbcTemplate<T> {
                 pst.setObject(idx + 1, params.get(idx));
             }
             pst.executeUpdate();
+            try (ResultSet rs = pst.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
         } catch (SQLException ex) {
             connection.rollback(savePoint);
             throw new DbServiceException(ex);
         }
+        return (long) params.get(0);
     }
 
     private Connection getConnection() {

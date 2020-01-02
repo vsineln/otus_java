@@ -5,7 +5,7 @@ public interface JdbcTemplate<T> {
 
     void update(T objectData);
 
-    void createOrUpdate(T objectData);
+    long createOrUpdate(T objectData);
 
     <T> T load(long id, Class<T> clazz);
 }

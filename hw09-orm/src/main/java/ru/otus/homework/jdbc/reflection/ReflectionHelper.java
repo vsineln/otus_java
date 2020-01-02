@@ -17,8 +17,12 @@ public class ReflectionHelper {
     }
 
     public String getIdFieldByClass(Class clazz) {
+        return getIdField(clazz).getName();
+    }
+
+    public Field getIdField(Class clazz) {
         Field[] fields = clazz.getDeclaredFields();
-        return findId(fields).getName();
+        return findId(fields);
     }
 
     public Map<String, Object> getFieldsWithValues(Object objectData) {
@@ -42,6 +46,26 @@ public class ReflectionHelper {
         try {
             field.setAccessible(true);
             field.set(objectInstance, fieldValue);
+        } catch (IllegalAccessException e) {
+            throw new JdbcException(e);
+        }
+    }
+
+    public void setIdField(Object objectInstance, Object fieldValue) {
+        try {
+            Field idField = getIdField(objectInstance.getClass());
+            idField.setAccessible(true);
+            idField.set(objectInstance, fieldValue);
+        } catch (IllegalAccessException e) {
+            throw new JdbcException(e);
+        }
+    }
+
+    public String getIdFieldValue(Object object) {
+        try {
+            Field idField = getIdField(object.getClass());
+            idField.setAccessible(true);
+            return idField.get(object).toString();
         } catch (IllegalAccessException e) {
             throw new JdbcException(e);
         }
