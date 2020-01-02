@@ -29,11 +29,13 @@
         <com.google.guava.version>28.1-jre</com.google.guava.version>
         <org.apache.commons.collections4.version>4.4</org.apache.commons.collections4.version>
         <org.apache.commons.lang3.version>3.9</org.apache.commons.lang3.version>
-        <org.junit.jupiter.version>5.3.2</org.junit.jupiter.version>
-        <junit-jupiter-api.version>5.5.1</junit-jupiter-api.version>
-        <org.projectlombok.version>1.18.10</org.projectlombok.version>
+        <org.junit.jupiter.version>5.5.2</org.junit.jupiter.version>
+        <org.assertj-core.version>3.13.2</org.assertj-core.version>
         <com.h2database.version>1.4.199</com.h2database.version>
+        <org.postgresql.version>42.2.9</org.postgresql.version>
+        <org.hibernate-core.version>5.4.4.Final</org.hibernate-core.version>
         <ch.qos.logback.version>1.2.3</ch.qos.logback.version>
+        <org.projectlombok.version>1.18.10</org.projectlombok.version>
     </properties>
 
     <dependencyManagement>
@@ -68,14 +70,14 @@
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
-                <version>${junit-jupiter-api.version}</version>
+                <version>${org.junit.jupiter.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${org.projectlombok.version}</version>
-                <scope>provided</scope>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${org.assertj-core.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -83,9 +85,25 @@
                 <version>${com.h2database.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${org.postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${org.hibernate-core.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>${ch.qos.logback.version}}</version>
+                <version>${ch.qos.logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${org.projectlombok.version}</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -106,6 +124,5 @@
             </plugins>
         </pluginManagement>
     </build>
-
 
 </project>
