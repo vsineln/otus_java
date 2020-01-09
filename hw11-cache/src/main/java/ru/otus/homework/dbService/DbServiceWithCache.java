@@ -5,14 +5,18 @@ import ru.otus.homework.api.service.DbService;
 import ru.otus.homework.api.service.DbServiceException;
 import ru.otus.homework.api.sessionmanager.SessionManager;
 import ru.otus.homework.cache.HwCache;
+import ru.otus.homework.jdbc.reflection.ReflectionHelper;
 
 import java.util.Optional;
 
 public class DbServiceWithCache implements DbService {
-    private final ObjectDao objectDao;
+    private ObjectDao objectDao;
+    private HwCache<String, Object> cache;
+    private ReflectionHelper reflectionHelper = new ReflectionHelper();
 
-    public DbServiceWithCache(ObjectDao objectDao) {
+    public DbServiceWithCache(ObjectDao objectDao, HwCache<String, Object> cache) {
         this.objectDao = objectDao;
+        this.cache = cache;
     }
 
     @Override
@@ -22,6 +26,8 @@ public class DbServiceWithCache implements DbService {
             try {
                 long objectId = objectDao.saveObject(object);
                 sessionManager.commitSession();
+                reflectionHelper.setIdField(object, objectId);
+                cache.put(String.valueOf(objectId), object);
                 return objectId;
             } catch (Exception e) {
                 sessionManager.rollbackSession();
@@ -32,6 +38,10 @@ public class DbServiceWithCache implements DbService {
 
     @Override
     public Optional<Object> getObject(long id, Class cl) {
+        Object cachedObject = cache.get(String.valueOf(id));
+        if (cachedObject != null) {
+            return Optional.of(cachedObject);
+        }
         try (SessionManager sessionManager = objectDao.getSessionManager()) {
             sessionManager.beginSession();
             try {
@@ -50,6 +60,7 @@ public class DbServiceWithCache implements DbService {
             try {
                 objectDao.updateObject(object);
                 sessionManager.commitSession();
+                cache.put(reflectionHelper.getIdFieldValue(object), object);
             } catch (Exception e) {
                 sessionManager.rollbackSession();
             }
@@ -57,14 +68,17 @@ public class DbServiceWithCache implements DbService {
     }
 
     @Override
-    public void createOrUpdate(Object object) {
+    public long createOrUpdate(Object object) {
         try (SessionManager sessionManager = objectDao.getSessionManager()) {
             sessionManager.beginSession();
             try {
-                objectDao.createOrUpdateObject(object);
+                long objectId = objectDao.createOrUpdateObject(object);
                 sessionManager.commitSession();
+                cache.put(String.valueOf(objectId), object);
+                return objectId;
             } catch (Exception e) {
                 sessionManager.rollbackSession();
+                throw new DbServiceException(e);
             }
         }
     }
