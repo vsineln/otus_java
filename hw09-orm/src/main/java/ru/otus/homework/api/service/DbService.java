@@ -10,5 +10,5 @@ public interface DbService {
 
     void updateObject(Object object);
 
-    void createOrUpdate(Object o);
+    long createOrUpdate(Object o);
 }

@@ -54,14 +54,16 @@ public class DbServiceImpl implements DbService {
     }
 
     @Override
-    public void createOrUpdate(Object object) {
+    public long createOrUpdate(Object object) {
         try (SessionManager sessionManager = objectDao.getSessionManager()) {
             sessionManager.beginSession();
             try {
-                objectDao.createOrUpdateObject(object);
+                long objectId = objectDao.createOrUpdateObject(object);
                 sessionManager.commitSession();
+                return objectId;
             } catch (Exception e) {
                 sessionManager.rollbackSession();
+                throw new DbServiceException(e);
             }
         }
     }

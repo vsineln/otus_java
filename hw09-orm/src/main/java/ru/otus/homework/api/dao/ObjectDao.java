@@ -4,14 +4,14 @@ import ru.otus.homework.api.sessionmanager.SessionManager;
 
 import java.util.Optional;
 
-public interface ObjectDao {
-    Optional<Object> findById(long id, Class cl);
+public interface ObjectDao<T> {
+    Optional<T> findById(long id, Class cl);
 
-    long saveObject(Object object);
+    long saveObject(T object);
 
-    void updateObject(Object object);
+    void updateObject(T object);
 
-    void createOrUpdateObject(Object object);
+    long createOrUpdateObject(T object);
 
     SessionManager getSessionManager();
 }
