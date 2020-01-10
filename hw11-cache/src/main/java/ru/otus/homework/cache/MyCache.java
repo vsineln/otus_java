@@ -45,7 +45,11 @@ public class MyCache<K, V> implements HwCache<K, V> {
 
     private void notifyListener(K key, V value, String action) {
         checkListeners();
-        listeners.forEach(listener -> listener.get().notify(key, value, action));
+        listeners.forEach(listener -> {
+            if (listener != null) {
+                listener.get().notify(key, value, action);
+            }
+        });
     }
 
     private void checkListeners() {

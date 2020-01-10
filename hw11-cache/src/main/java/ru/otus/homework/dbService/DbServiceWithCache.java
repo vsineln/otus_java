@@ -38,14 +38,16 @@ public class DbServiceWithCache implements DbService {
 
     @Override
     public Optional<Object> getObject(long id, Class cl) {
-        Object cachedObject = cache.get(String.valueOf(id));
-        if (cachedObject != null) {
-            return Optional.of(cachedObject);
+        Optional<Object> cachedObject = Optional.ofNullable(cache.get(String.valueOf(id)));
+        if (cachedObject.isPresent()) {
+            return cachedObject;
         }
         try (SessionManager sessionManager = objectDao.getSessionManager()) {
             sessionManager.beginSession();
             try {
-                return objectDao.findById(id, cl);
+                Optional<Object> objectOptional = objectDao.findById(id, cl);
+                objectOptional.ifPresent(o -> cache.put(String.valueOf(id), o));
+                return objectOptional;
             } catch (Exception e) {
                 sessionManager.rollbackSession();
             }
