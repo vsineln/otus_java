@@ -1,5 +1,8 @@
 package ru.otus.homework.cache;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -10,6 +13,7 @@ import java.util.Optional;
 import java.util.WeakHashMap;
 
 public class MyCache<K, V> implements HwCache<K, V> {
+    private Logger logger = LoggerFactory.getLogger(MyCache.class);
     private Map<K, V> cache = new WeakHashMap<>();
     private List<WeakReference<HwListener>> listeners = new ArrayList<>();
     private ReferenceQueue<HwListener> refQueue = new ReferenceQueue<>();
@@ -47,7 +51,11 @@ public class MyCache<K, V> implements HwCache<K, V> {
         checkListeners();
         listeners.forEach(listener -> {
             if (listener != null) {
-                listener.get().notify(key, value, action);
+                try {
+                    listener.get().notify(key, value, action);
+                } catch (Exception e) {
+                    logger.error("Error in listener: " + e.getMessage());
+                }
             }
         });
     }
