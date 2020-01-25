@@ -1,7 +1,8 @@
 package ru.otus.homework.impl;
 
-import lombok.extern.java.Log;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otus.homework.ATM;
 import ru.otus.homework.exception.ATMException;
 
@@ -17,8 +18,8 @@ import java.util.stream.Collectors;
 /**
  * Class for ATM, which holds a number of Cell(s) with default values or custom ones
  */
-@Log
 public class AtmImpl implements ATM {
+    private static final Logger log = LoggerFactory.getLogger(AtmImpl.class);
     private final Comparator<Cell> compareCells = Comparator.comparing(Cell::getNominal, Comparator.reverseOrder());
     private static final Set<Nominal> defaulNominals = EnumSet.allOf(Nominal.class);
     private Set<Cell> cells = new TreeSet<>(compareCells);
@@ -33,7 +34,7 @@ public class AtmImpl implements ATM {
 
     @Override
     public void addBanknotes(List<Nominal> banknotes) {
-        log.info("Add banknotes");
+        log.debug("Add banknotes");
         if (CollectionUtils.isEmpty(banknotes)) {
             throw new IllegalArgumentException("No banknotes to add");
         }
@@ -52,7 +53,7 @@ public class AtmImpl implements ATM {
 
     @Override
     public List<Nominal> getBanknotes(int sum) {
-        log.info("Get banknotes");
+        log.debug("Get banknotes");
         if (sum > getBalance()) {
             throw new ATMException("Not enough money");
         }
@@ -67,7 +68,7 @@ public class AtmImpl implements ATM {
 
     @Override
     public List<Nominal> getAllBanknote() {
-        log.info("Get all banknotes");
+        log.debug("Get all banknotes");
         if (CollectionUtils.isEmpty(cells)) {
             throw new ATMException("ATM is empty");
         }
