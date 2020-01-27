@@ -12,10 +12,10 @@
 
 <body>
 <div class="container my-5">
-    <h2 class="mb-5">Create new user:</h2>
+    <h2 class="mb-5">Save new user:</h2>
     <div class="row">
         <div class="col-md-6">
-            <form action="#" th:action="@{/user/save}" th:object="${user}" method="post">
+            <form action="#" th:action="@{/user/save}" th:object="${userDto}" method="post">
                 <div class="row">
                     <div class="form-group col-md-6">
                         <label for="name" class="col-form-label">Name</label>
@@ -42,7 +42,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mt-5">
-                        <input type="submit" class="btn btn-primary" value="Create new user">
+                        <input type="submit" class="btn btn-primary" value="Save new user">
                     </div>
                 </div>
             </form>

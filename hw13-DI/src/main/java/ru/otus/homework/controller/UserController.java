@@ -9,12 +9,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import ru.otus.homework.dto.UserDto;
 import ru.otus.homework.exception.UserValidationException;
 import ru.otus.homework.model.User;
 import ru.otus.homework.service.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
@@ -27,29 +29,37 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/user/save")
-    public String saveUser(@Valid User user, BindingResult result) {
-        logger.info("save user {}", user.getLogin());
-        if (!result.hasErrors()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            try {
-                userService.saveUser(user);
-            } catch (UserValidationException e) {
-                result.rejectValue("login", "error.user", e.getMessage());
-            }
-        }
-        return "userCreate";
-    }
-
     @GetMapping({"/", "/user/list"})
     public String getUsersList(Model model) {
-        List<User> users = userService.getUsers();
+        List<UserDto> users = userService.getUsers().stream().
+                map(this::toDto).collect(Collectors.toList());
         model.addAttribute("users", users);
         return "userList";
     }
 
-    @GetMapping("/admin")
-    public String saveUser(@ModelAttribute User user) {
-        return "userCreate";
+    @GetMapping("/user/create")
+    public String saveUser(@ModelAttribute UserDto userDto) {
+        return "userSave";
+    }
+
+    @PostMapping("/user/save")
+    public String saveUser(@Valid UserDto userDto, BindingResult result) {
+        logger.info("save user {}", userDto.getLogin());
+        if (!result.hasErrors()) {
+            try {
+                userService.saveUser(toEntity(userDto));
+            } catch (UserValidationException e) {
+                result.rejectValue("login", "error.user", e.getMessage());
+            }
+        }
+        return "userSave";
+    }
+
+    private User toEntity(UserDto userDto) {
+        return new User(userDto.getName(), userDto.getLogin(), passwordEncoder.encode(userDto.getPassword()), userDto.getRole());
+    }
+
+    private UserDto toDto(User user) {
+        return new UserDto(user.getName(), user.getLogin(), "", user.getRole());
     }
 }

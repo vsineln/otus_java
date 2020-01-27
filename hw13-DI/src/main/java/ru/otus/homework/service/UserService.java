@@ -9,6 +9,4 @@ public interface UserService {
     void saveUser(User user);
 
     List<User> getUsers();
-
-    boolean loginAdmin(String login, String password);
 }

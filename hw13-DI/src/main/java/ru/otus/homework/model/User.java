@@ -3,16 +3,13 @@ package ru.otus.homework.model;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Document(collection = "users")
 public class User {
     private String name;
     @Indexed(unique = true)
-    @Size(min = 1, message = "Login can not be empty")
     private String login;
-    @Size(min = 1, message = "Password can not be empty")
     private String password;
     private Role role;
 

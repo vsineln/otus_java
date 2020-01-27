@@ -23,15 +23,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .exceptionHandling()
-                .and()
                 .authorizeRequests()
-                .antMatchers("/admin", "/user/save").hasAuthority("admin")
-                .anyRequest().authenticated()
-                .and().httpBasic()
+                .antMatchers("/user/create", "/user/save").hasAuthority("admin")
+                .antMatchers("/", "/user/list").authenticated()
                 .and()
-                .logout();
+                .formLogin()
+                .loginPage("/login.html")
+                .failureUrl("/login-error.html")
+                .and()
+                .exceptionHandling().accessDeniedPage("/403.html")
+                .and()
+                .logout()
+                .logoutSuccessUrl("/login.html")
+                .and().httpBasic()
+                .and().csrf().disable();
     }
 
     @Override

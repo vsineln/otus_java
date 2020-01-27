@@ -9,7 +9,7 @@ import ru.otus.homework.model.User;
 import ru.otus.homework.repository.UserRepository;
 
 /**
- * Create default admin in data base
+ * Create default 'admin' user in data base
  */
 @Component
 public class DataLoader implements ApplicationListener<ContextRefreshedEvent> {

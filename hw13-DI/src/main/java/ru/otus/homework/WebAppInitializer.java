@@ -4,6 +4,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.Filter;
+import javax.servlet.ServletRegistration;
 
 public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
@@ -27,5 +28,10 @@ public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServlet
         encodingFilter.setEncoding("UTF-8");
         encodingFilter.setForceEncoding(true);
         return new Filter[]{encodingFilter};
+    }
+
+    @Override
+    public void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.setInitParameter("throwExceptionIfNoHandlerFound", "true");
     }
 }

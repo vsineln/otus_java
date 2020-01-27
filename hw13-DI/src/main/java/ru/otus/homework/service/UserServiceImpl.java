@@ -4,14 +4,12 @@ import org.springframework.dao.DuplicateKeyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import ru.otus.homework.model.Role;
 import ru.otus.homework.model.User;
 import ru.otus.homework.repository.UserRepository;
 import ru.otus.homework.cache.CacheService;
 import ru.otus.homework.exception.UserValidationException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -45,17 +43,5 @@ public class UserServiceImpl implements UserService {
     public List<User> getUsers() {
         logger.debug("get users");
         return userRepository.getUsers();
-    }
-
-    @Override
-    public boolean loginAdmin(String login, String password) {
-        logger.debug("login as admin: {}", login);
-        Optional<User> optionalUser;
-        if (cacheService.get(login) != null) {
-            optionalUser = Optional.ofNullable(cacheService.get(login));
-        } else {
-            optionalUser = userRepository.getByLogin(login);
-        }
-        return optionalUser.map(user -> password.equals(user.getPassword()) && Role.ADMIN.equals(user.getRole())).orElse(false);
     }
 }
