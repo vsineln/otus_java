@@ -28,7 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>12</maven.compiler.source>
         <maven.compiler.target>12</maven.compiler.target>
-        <spring.version>5.1.5.RELEASE</spring.version>
+        <spring.version>5.2.0.RELEASE</spring.version>
         <spring.data.mongodb.version>2.2.3.RELEASE</spring.data.mongodb.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <javax.validation.version>2.0.1.Final</javax.validation.version>
