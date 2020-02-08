@@ -5,7 +5,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.otus.homework.model.Role;
-import ru.otus.homework.model.User;
+import ru.otus.homework.model.UserDoc;
 import ru.otus.homework.repository.UserRepository;
 
 /**
@@ -25,7 +25,7 @@ public class DataLoader implements ApplicationListener<ContextRefreshedEvent> {
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
         if (userRepository.getByLogin(ADMIN).isEmpty()) {
-            userRepository.saveUser(new User(ADMIN, ADMIN, passwordEncoder.encode(ADMIN), Role.ADMIN));
+            userRepository.saveUser(new UserDoc(ADMIN, ADMIN, passwordEncoder.encode(ADMIN), Role.ADMIN));
         }
     }
 }

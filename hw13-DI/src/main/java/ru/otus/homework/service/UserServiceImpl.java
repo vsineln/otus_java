@@ -4,7 +4,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import ru.otus.homework.model.User;
+import ru.otus.homework.model.UserDoc;
 import ru.otus.homework.repository.UserRepository;
 import ru.otus.homework.cache.CacheService;
 import ru.otus.homework.exception.UserValidationException;
@@ -15,9 +15,9 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private UserRepository userRepository;
-    private CacheService<String, User> cacheService;
+    private CacheService<String, UserDoc> cacheService;
 
-    public UserServiceImpl(UserRepository userRepository, CacheService<String, User> cacheService) {
+    public UserServiceImpl(UserRepository userRepository, CacheService<String, UserDoc> cacheService) {
         this.userRepository = userRepository;
         this.cacheService = cacheService;
         cacheService.addListener((key, value, action) -> LoggerFactory.getLogger(
@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveUser(User user) {
+    public void saveUser(UserDoc user) {
         logger.debug("save user: {}", user.getLogin());
         if (cacheService.get(user.getLogin()) != null) {
             throw new UserValidationException("Login already exists");
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getUsers() {
+    public List<UserDoc> getUsers() {
         logger.debug("get users");
         return userRepository.getUsers();
     }

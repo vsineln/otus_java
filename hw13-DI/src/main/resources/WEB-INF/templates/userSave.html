@@ -32,7 +32,7 @@
                         <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="role" class="col-form-label">Role</label>
+                        <label class="col-form-label">Role</label>
                         <br/>
                         <select name="role">
                             <option th:each="roleVal : ${T(ru.otus.homework.model.Role).values()}"

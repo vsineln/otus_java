@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import ru.otus.homework.dto.UserDto;
 import ru.otus.homework.exception.UserValidationException;
-import ru.otus.homework.model.User;
+import ru.otus.homework.model.UserDoc;
 import ru.otus.homework.service.UserService;
 
 import javax.validation.Valid;
@@ -30,15 +30,15 @@ public class UserController {
     }
 
     @GetMapping({"/", "/user/list"})
-    public String getUsersList(Model model) {
+    public String userListView(Model model) {
         List<UserDto> users = userService.getUsers().stream().
                 map(this::toDto).collect(Collectors.toList());
         model.addAttribute("users", users);
         return "userList";
     }
 
-    @GetMapping("/user/create")
-    public String saveUser(@ModelAttribute UserDto userDto) {
+    @GetMapping("/user/save")
+    public String userSaveView(@ModelAttribute UserDto userDto) {
         return "userSave";
     }
 
@@ -55,11 +55,11 @@ public class UserController {
         return "userSave";
     }
 
-    private User toEntity(UserDto userDto) {
-        return new User(userDto.getName(), userDto.getLogin(), passwordEncoder.encode(userDto.getPassword()), userDto.getRole());
+    private UserDoc toEntity(UserDto userDto) {
+        return new UserDoc(userDto.getName(), userDto.getLogin(), passwordEncoder.encode(userDto.getPassword()), userDto.getRole());
     }
 
-    private UserDto toDto(User user) {
+    private UserDto toDto(UserDoc user) {
         return new UserDto(user.getName(), user.getLogin(), "", user.getRole());
     }
 }

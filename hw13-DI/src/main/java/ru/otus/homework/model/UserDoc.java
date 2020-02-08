@@ -6,14 +6,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Objects;
 
 @Document(collection = "users")
-public class User {
+public class UserDoc {
     private String name;
     @Indexed(unique = true)
     private String login;
     private String password;
     private Role role;
 
-    public User(String name, String login, String password, Role role) {
+    public UserDoc(String name, String login, String password, Role role) {
         this.name = name;
         this.login = login;
         this.password = password;
@@ -56,7 +56,7 @@ public class User {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
+        UserDoc user = (UserDoc) o;
         return Objects.equals(name, user.name) &&
                 Objects.equals(login, user.login) &&
                 Objects.equals(password, user.password) &&
