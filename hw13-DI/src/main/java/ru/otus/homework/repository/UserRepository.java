@@ -1,15 +1,15 @@
 package ru.otus.homework.repository;
 
-import ru.otus.homework.model.UserDoc;
+import ru.otus.homework.model.AppUser;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository {
 
-    void saveUser(UserDoc user);
+    void saveUser(AppUser user);
 
-    List<UserDoc> getUsers();
+    List<AppUser> getUsers();
 
-    Optional<UserDoc> getByLogin(String login);
+    Optional<AppUser> getByLogin(String login);
 }

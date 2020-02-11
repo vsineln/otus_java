@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import ru.otus.homework.model.UserDoc;
+import ru.otus.homework.model.AppUser;
 import ru.otus.homework.repository.UserRepository;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String login) {
-        UserDoc user = repository.getByLogin(login).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        AppUser user = repository.getByLogin(login).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().getDisplayName()));
 
         return new User(user.getLogin(), user.getPassword(), authorities);

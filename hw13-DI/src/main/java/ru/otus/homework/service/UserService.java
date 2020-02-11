@@ -1,12 +1,12 @@
 package ru.otus.homework.service;
 
-import ru.otus.homework.model.UserDoc;
+import ru.otus.homework.model.AppUser;
 
 import java.util.List;
 
 public interface UserService {
 
-    void saveUser(UserDoc user);
+    void saveUser(AppUser user);
 
-    List<UserDoc> getUsers();
+    List<AppUser> getUsers();
 }

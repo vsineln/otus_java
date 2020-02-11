@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import ru.otus.homework.dto.UserDto;
 import ru.otus.homework.exception.UserValidationException;
-import ru.otus.homework.model.UserDoc;
+import ru.otus.homework.model.AppUser;
 import ru.otus.homework.service.UserService;
 
 import javax.validation.Valid;
@@ -55,11 +55,11 @@ public class UserController {
         return "userSave";
     }
 
-    private UserDoc toEntity(UserDto userDto) {
-        return new UserDoc(userDto.getName(), userDto.getLogin(), passwordEncoder.encode(userDto.getPassword()), userDto.getRole());
+    private AppUser toEntity(UserDto userDto) {
+        return new AppUser(userDto.getName(), userDto.getLogin(), passwordEncoder.encode(userDto.getPassword()), userDto.getRole());
     }
 
-    private UserDto toDto(UserDoc user) {
+    private UserDto toDto(AppUser user) {
         return new UserDto(user.getName(), user.getLogin(), "", user.getRole());
     }
 }
