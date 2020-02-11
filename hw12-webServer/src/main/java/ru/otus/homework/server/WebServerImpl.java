@@ -25,11 +25,11 @@ import static ru.otus.homework.util.Constants.LOGOUT_PATH;
 
 public class WebServerImpl implements WebServer {
     private static final Logger log = LoggerFactory.getLogger(WebServerImpl.class);
-    private AuthenticateService authenticateService;
-    private TemplateProcessor templateProcessor;
-    private UserDao userDao;
-    private Server server;
-    private int port;
+    private final AuthenticateService authenticateService;
+    private final TemplateProcessor templateProcessor;
+    private final UserDao userDao;
+    private final Server server;
+    private final int port;
 
     public WebServerImpl(int port, AuthenticateService authenticateService, UserDao userDao, TemplateProcessor templateProcessor) {
         this.port = port;
@@ -86,13 +86,13 @@ public class WebServerImpl implements WebServer {
     private ServletContextHandler createServletContextHandler() {
         ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletHolder(new AdminServlet(templateProcessor, userDao)), ADMIN_PATH);
-        servletContextHandler.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         servletContextHandler.setErrorHandler(new ErrorHandler(templateProcessor));
         return servletContextHandler;
     }
 
     private ServletContextHandler applyFilterBasedSecurity(ServletContextHandler servletContextHandler, String... paths) {
         servletContextHandler.addServlet(new ServletHolder(new LoginServlet(templateProcessor, authenticateService)), LOGIN_PATH);
+        servletContextHandler.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         AuthorizationFilter authorizationFilter = new AuthorizationFilter();
         IntStream.range(0, paths.length)
                 .forEachOrdered(i -> servletContextHandler.addFilter(new FilterHolder(authorizationFilter), paths[i], null));

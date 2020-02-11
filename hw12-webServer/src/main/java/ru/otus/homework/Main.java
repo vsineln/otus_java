@@ -47,9 +47,7 @@ public class Main {
             MongoDatabase database = mongoClient.getDatabase(appProperties.getProperty(DB_NAME));
             MongoCollection<Document> collection = database.getCollection(USERS);
             UserDao userDao = new UserDaoImpl(collection);
-            if (userDao.getByLogin(ADMIN).isEmpty()) {
-                userDao.createUser(new User(ADMIN, ADMIN, BCrypt.hashpw(ADMIN, BCrypt.gensalt(LOG_ROUNDS)), Role.ADMIN));
-            }
+            createDefaultAdmin(userDao);
 
             AuthenticateService authenticateService = new AuthenticateServiceImpl(userDao);
             TemplateProcessor templateProcessor = new TemplateProcessorImpl(TEMPLATES_DIR);
@@ -72,6 +70,12 @@ public class Main {
         } catch (IOException e) {
             log.error("Can not load properties");
             throw new WebServerException(e.getMessage());
+        }
+    }
+
+    private static void createDefaultAdmin(UserDao userDao) {
+        if (userDao.getByLogin(ADMIN).isEmpty()) {
+            userDao.createUser(new User(ADMIN, ADMIN, BCrypt.hashpw(ADMIN, BCrypt.gensalt(LOG_ROUNDS)), Role.ADMIN));
         }
     }
 }
