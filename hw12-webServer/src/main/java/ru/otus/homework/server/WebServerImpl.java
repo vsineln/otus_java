@@ -86,13 +86,13 @@ public class WebServerImpl implements WebServer {
     private ServletContextHandler createServletContextHandler() {
         ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         servletContextHandler.addServlet(new ServletHolder(new AdminServlet(templateProcessor, userDao)), ADMIN_PATH);
+        servletContextHandler.addServlet(new ServletHolder(new LoginServlet(templateProcessor, authenticateService)), LOGIN_PATH);
+        servletContextHandler.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         servletContextHandler.setErrorHandler(new ErrorHandler(templateProcessor));
         return servletContextHandler;
     }
 
     private ServletContextHandler applyFilterBasedSecurity(ServletContextHandler servletContextHandler, String... paths) {
-        servletContextHandler.addServlet(new ServletHolder(new LoginServlet(templateProcessor, authenticateService)), LOGIN_PATH);
-        servletContextHandler.addServlet(new ServletHolder(new LogoutServlet()), LOGOUT_PATH);
         AuthorizationFilter authorizationFilter = new AuthorizationFilter();
         IntStream.range(0, paths.length)
                 .forEachOrdered(i -> servletContextHandler.addFilter(new FilterHolder(authorizationFilter), paths[i], null));
