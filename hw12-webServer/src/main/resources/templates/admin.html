@@ -1,0 +1,53 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+<h2>Create new user</h2>
+<form action="" method="post">
+    <label>
+        <b>Name</b> <br/>
+        <input type="text" name="name">
+    </label>
+    <br/><br/>
+    <label>
+        <b>Login</b> <br/>
+        <input type="text" name="login" required="required">
+    </label>
+    <br/><br/>
+    <label>
+        <b>Password</b><br/>
+        <input type="password" name="password" required="required">
+    </label>
+    <br/><br/>
+    <label>
+        <b>Role</b> <br/>
+        <input type="text" name="role" value="user" pattern="user|admin"
+               oninvalid="setCustomValidity('Possible roles: user, admin')"
+               onchange="try{setCustomValidity('')}catch(e){}"/>
+    </label>
+    <br/><br/>
+    <input type="submit">
+</form>
+
+
+<h2>All users</h2>
+
+<table style="width: 400px">
+    <thead>
+    <tr>
+        <td style="width: 100px">Name</td>
+        <td style="width: 100px">Login</td>
+        <td style="width: 100px">Role</td>
+    </tr>
+    </thead>
+    <tbody>
+    <#list users as user>
+    <tr>
+        <td>${user.name}</td>
+        <td>${user.login}</td>
+        <td>${user.role}</td>
+    </#list>
+    </tbody>
+</table>
+<br/><br/>
+<a href="/logout">Logout</a>
+</body>
+</html>

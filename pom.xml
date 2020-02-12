@@ -22,6 +22,7 @@
         <module>hw09-orm</module>
         <module>hw10-hibernate</module>
         <module>hw11-cache</module>
+        <module>hw12-webServer</module>
         <module>hw13-DI</module>
     </modules>
 
@@ -46,6 +47,8 @@
         <org.assertj-core.version>3.13.2</org.assertj-core.version>
         <ch.qos.logback.version>1.2.3</ch.qos.logback.version>
         <org.slf4j.api.version>1.7.25</org.slf4j.api.version>
+        <org.freemarker.version>2.3.28</org.freemarker.version>
+        <org.jetty.version>9.4.22.v20191022</org.jetty.version>
     </properties>
 
     <dependencyManagement>
@@ -90,7 +93,7 @@
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${javax.servlet.version}</version>
-                <scope>provided</scope>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>javax.validation</groupId>
@@ -194,6 +197,26 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${org.slf4j.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${org.freemarker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${org.jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${org.jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-security</artifactId>
+                <version>${org.jetty.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
