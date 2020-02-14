@@ -24,6 +24,7 @@
         <module>hw11-cache</module>
         <module>hw12-webServer</module>
         <module>hw13-DI</module>
+        <module>hw14-threads</module>
     </modules>
 
     <properties>
