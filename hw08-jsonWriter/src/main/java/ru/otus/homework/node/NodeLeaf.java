@@ -16,6 +16,12 @@ public class NodeLeaf extends Node {
 
     @Override
     public String toString() {
-        return encloseWithCheck(key, QUOTES) + COLON + encloseWithCheck(value, QUOTES);
+        StringBuilder sb = new StringBuilder();
+        if (key != null) {
+            sb.append(encloseWithCheck(key, QUOTES));
+            sb.append(COLON);
+        }
+        sb.append(encloseWithCheck(value, QUOTES));
+        return sb.toString();
     }
 }

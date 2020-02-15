@@ -54,6 +54,8 @@ public class Node {
                 }
                 return node1.toString();
             }).collect(Collectors.joining(COMMA)));
+        } else {
+            return toString();
         }
         sb.append("}");
         return sb.toString();
@@ -61,6 +63,16 @@ public class Node {
 
     @Override
     public String toString() {
-        return nodeToJson(new StringBuilder());
+        StringBuilder sb = new StringBuilder();
+        if (getName() != null) {
+            sb.append(encloseWithCheck(name, QUOTES));
+            sb.append(COLON);
+            sb.append("{");
+            sb.append(children.stream().map(Node::toString).collect(Collectors.joining(COMMA)));
+            sb.append("}");
+            return sb.toString();
+        } else {
+            return enclose(sb.toString(), BRACES);
+        }
     }
 }
