@@ -10,8 +10,11 @@ import ru.otus.homework.node.NodeMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ru.otus.homework.util.JsonUtil.checkSimple;
 
@@ -25,17 +28,25 @@ public class JsonWriter {
         return node.nodeToJson(new StringBuilder("{"));
     }
 
-    public Node parseObject(Object object, Node node) {
+    private Node parseObject(Object object, Node node) {
         if (checkSimple(object.getClass())) {
             return new NodeLeaf(null, object);
         }
         Class objClass = object.getClass();
         if (objClass.isArray()) {
-            return new NodeArray(object);
+            return getArrayNode(objClass.getComponentType(), null, object);
         } else if (Collection.class.isAssignableFrom(objClass)) {
-            return new NodeCollection(object);
+            Iterator iterator = ((Collection) object).iterator();
+            if (iterator.hasNext()) {
+                return getCollectionNode(iterator.next().getClass(), null, object);
+            }
+            return new NodeCollection(null, object);
         } else if (Map.class.isAssignableFrom(objClass)) {
-            return new NodeMap(object);
+            Iterator iterator = ((Map<Object, Object>) object).values().iterator();
+            if (iterator.hasNext()) {
+                return getMapNode(iterator.next().getClass(), null, object);
+            }
+            return new Node();
         }
         return parseFields(object, node);
     }
@@ -57,13 +68,13 @@ public class JsonWriter {
                 if (checkSimple(cl)) {
                     node.addChild(new NodeLeaf(fieldName, fieldInst));
                 } else if (field.getType().isArray()) {
-                    node.addChild(new NodeArray(fieldName, fieldInst, field.getType().getComponentType()));
+                    node.addChild(getArrayNode(field.getType().getComponentType(), fieldName, fieldInst));
                 } else if (Collection.class.isAssignableFrom(cl)) {
                     Class<?> colTypeArg = (Class<?>) getCollectionType(field)[0];
-                    node.addChild(new NodeCollection(fieldName, fieldInst, colTypeArg));
+                    node.addChild(getCollectionNode(colTypeArg, fieldName, fieldInst));
                 } else if (Map.class.isAssignableFrom(cl)) {
                     Class<?> valueTypeArg = (Class<?>) getCollectionType(field)[1];
-                    node.addChild(new NodeMap(fieldName, fieldInst, valueTypeArg));
+                    node.addChild(getMapNode(valueTypeArg, fieldName, fieldInst));
                 } else {
                     Node newNode = new Node(fieldName);
                     node.addChild(newNode);
@@ -74,6 +85,31 @@ public class JsonWriter {
             throw new JsonException(e.getMessage());
         }
         return node;
+    }
+
+    private Node getArrayNode(Class cl, String fieldName, Object instance) {
+        if (checkSimple(cl)) {
+            return new NodeArray(fieldName, instance);
+        }
+        return new NodeArray(fieldName, Arrays.stream((Object[]) instance).map(
+                element -> parseObject(element, new Node())).toArray());
+    }
+
+    private Node getCollectionNode(Class cl, String fieldName, Object instance) {
+        if (checkSimple(cl)) {
+            return new NodeCollection(fieldName, instance);
+        }
+        return new NodeCollection(fieldName, ((Collection) instance).stream().map(
+                element -> parseObject(element, new Node())).collect(Collectors.toList()));
+    }
+
+    private Node getMapNode(Class cl, String fieldName, Object instance) {
+        if (checkSimple(cl)) {
+            return new NodeMap(fieldName, instance);
+        }
+        Map<Object, Object> map = ((Map<Object, Object>) instance).entrySet().stream().collect(Collectors.
+                toMap(Map.Entry::getKey, element -> parseObject(element.getValue(), new Node())));
+        return new NodeMap(fieldName, map);
     }
 
     private Type[] getCollectionType(Field field) {

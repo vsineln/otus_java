@@ -48,6 +48,8 @@ class JsonWriterTest {
         assertEquals(gson.toJson(Map.of(1, "a", 2, "b")), jsonWriter.toJson(Map.of(1, "a", 2, "b")));
         assertEquals(gson.toJson(List.of(new TreeObj1())), jsonWriter.toJson(List.of(new TreeObj1())));
         assertEquals(gson.toJson(Map.of(1, new TreeObj1())), jsonWriter.toJson(Map.of(1, new TreeObj1())));
+        assertEquals(gson.toJson(Collections.EMPTY_LIST), jsonWriter.toJson(Collections.EMPTY_LIST));
+        assertEquals(gson.toJson(Collections.EMPTY_MAP), jsonWriter.toJson(Collections.EMPTY_MAP));
     }
 
     @Test
