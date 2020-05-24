@@ -26,6 +26,7 @@
         <module>hw12-webServer</module>
         <module>hw13-DI</module>
         <module>hw14-threads</module>
+        <module>hw15-messageSystem</module>
     </modules>
 
     <properties>
