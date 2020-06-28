@@ -1,0 +1,21 @@
+server:
+  port: 8090
+
+tcp.server.port: 9009
+tcp.server.autostart: true
+
+ms:
+  host: localhost
+  port: 8081
+  client:
+    name: frontend1
+
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+logging.level:
+  ROOT: INFO
+  org.springframework: INFO
+  org.springframework.web: INFO
+  org.apache: INFO

@@ -28,6 +28,10 @@
         <module>hw13-DI</module>
         <module>hw14-threads</module>
         <module>hw15-messageSystem</module>
+        <module>hw16_messageServer</module>
+        <module>hw16_frontend</module>
+        <module>hw16_dbServer</module>
+        <module>hw16_common</module>
     </modules>
 
     <properties>

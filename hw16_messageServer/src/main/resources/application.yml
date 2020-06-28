@@ -1,0 +1,16 @@
+server:
+  port: 8081
+
+dbclients:
+  map:
+    database1: localhost:8083
+    database2: localhost:8084
+
+feclients:
+  map:
+    frontend1: localhost:9009
+    frontend2: localhost:9010
+
+logging.level:
+  ROOT: INFO
+  org.springframework: INFO
